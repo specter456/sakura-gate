@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sakura Gate · 桜の門</title>
+<style>
+  :root{
+    --lacquer:#181008; --lacquer2:#241a10; --lacquer3:#31241a;
+    --paper:#f6efe2; --paper-dim:#cfc4b2;
+    --sakura:#f2b8c6; --sakura-deep:#d98ba3;
+    --gold:#d9b45b; --gold-deep:#b98f3e;
+    --lake:#8fc3d4; --ink:#2a2530;
+    --success:#7fb069; --warn:#e0a458; --danger:#c96f6f; --info:#8fb8d9;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; overflow:hidden; width:100vw; height:100vh;
+    background-color:#0d0a07;
+    background-image:url('castle.jpg'), linear-gradient(180deg,#bcd7e4 0%,#e8d9c8 55%,#9fc3cf 100%);
+    background-size:cover,cover; background-position:center,center; background-repeat:no-repeat,no-repeat;
+    font-family:'Segoe UI',system-ui,sans-serif; color:var(--paper);
+  }
+  body::after{content:''; position:fixed; inset:0; z-index:3; pointer-events:none;
+    background:radial-gradient(ellipse at 42% 40%, transparent 55%, rgba(18,10,6,.38) 100%);}
+  canvas{display:block; position:absolute; top:0; left:0; z-index:2;}
+
+  #topbar{position:fixed; top:0; left:0; right:0; height:54px; z-index:30;
+    display:flex; align-items:center; gap:12px; padding:0 16px;
+    background:linear-gradient(90deg, rgba(24,16,8,.92), rgba(36,26,16,.86) 60%, rgba(24,16,8,.92));
+    border-bottom:1px solid rgba(217,180,91,.35); backdrop-filter:blur(6px);}
+  #seal{width:32px;height:32px; flex:0 0 auto; display:grid; place-items:center;
+    background:linear-gradient(145deg,var(--sakura-deep),#a4526d); color:#fff;
+    border-radius:8px; font-size:18px; box-shadow:0 0 12px rgba(217,139,163,.45);}
+  #title{font-size:15px; letter-spacing:2px; font-weight:600;}
+  #title small{display:block; font-size:10px; letter-spacing:3px; color:var(--gold); font-weight:400;}
+  #topbar .spacer{flex:1}
+  .btn{cursor:pointer; border:1px solid rgba(217,180,91,.45); background:var(--lacquer2);
+    color:var(--paper); padding:7px 14px; border-radius:8px; font-size:12px; letter-spacing:1px;
+    transition:transform .15s, box-shadow .15s, background .15s;}
+  .btn:hover{transform:translateY(-1px); box-shadow:0 4px 14px rgba(0,0,0,.4); background:var(--lacquer3);}
+  .btn:active{transform:translateY(0)}
+  .btn-gold{background:linear-gradient(145deg,var(--gold),var(--gold-deep)); color:#241a08; font-weight:700; border-color:transparent;}
+  .btn-gold:hover{background:linear-gradient(145deg,#e8c76e,var(--gold));}
+  .btn-gold.dirty::after{content:'•'; color:#7a2e2e; margin-left:6px; font-size:16px; line-height:0;}
+  #muteBtn[aria-pressed="true"]{border-color:var(--danger); color:var(--danger);}
+  :focus-visible{outline:2px solid var(--gold); outline-offset:2px;}
+
+  #panel{position:fixed; top:66px; right:14px; bottom:14px; width:280px; z-index:20;
+    display:flex; flex-direction:column;
+    background:linear-gradient(180deg, rgba(32,22,13,.94), rgba(23,16,9,.96));
+    border:1px solid rgba(217,180,91,.4); border-radius:14px;
+    box-shadow:0 12px 40px rgba(0,0,0,.5); backdrop-filter:blur(8px);
+    animation:slideIn .7s cubic-bezier(.2,.8,.2,1) both;}
+  @keyframes slideIn{from{opacity:0; transform:translateX(30px)} to{opacity:1; transform:none}}
+  #panel header{padding:12px 16px 8px; border-bottom:1px solid rgba(217,180,91,.25);}
+  #panel header h2{margin:0; font-size:13px; letter-spacing:3px; color:var(--gold); font-weight:600;}
+  #panel header p{margin:2px 0 0; font-size:10px; color:var(--paper-dim); letter-spacing:1px;}
+  #panelBody{overflow-y:auto; padding:10px 16px 14px; flex:1;
+    scrollbar-width:thin; scrollbar-color:var(--sakura-deep) rgba(24,16,8,.6);}
+  #panelBody::-webkit-scrollbar{width:8px}
+  #panelBody::-webkit-scrollbar-track{background:rgba(24,16,8,.6); border-radius:8px;}
+  #panelBody::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--sakura-deep),var(--gold-deep)); border-radius:8px;}
+  #panelBody::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg,var(--sakura),var(--gold));}
+  .sec{margin:12px 0 6px; font-size:10px; letter-spacing:3px; color:var(--lake); text-transform:uppercase;
+    display:flex; align-items:center; gap:8px;}
+  .sec::after{content:''; flex:1; height:1px; background:linear-gradient(90deg, rgba(143,195,212,.5), transparent);}
+  .row{display:grid; grid-template-columns:1fr auto; align-items:center; gap:6px; margin:7px 0;}
+  .row label{font-size:11px; color:var(--paper); letter-spacing:.5px;}
+  .row output{font-size:11px; color:var(--gold); font-variant-numeric:tabular-nums; min-width:38px; text-align:right;}
+  .row input[type=range]{grid-column:1 / -1; width:100%; -webkit-appearance:none; appearance:none;
+    height:4px; border-radius:4px; background:linear-gradient(90deg,var(--sakura-deep),var(--gold-deep)); cursor:pointer;}
+  .row input[type=range]::-webkit-slider-thumb{-webkit-appearance:none; width:14px; height:14px; border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #fff, var(--gold) 60%); border:2px solid var(--lacquer);
+    box-shadow:0 0 8px rgba(217,180,91,.6); transition:transform .12s;}
+  .row input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.2)}
+  .row input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;background:var(--gold);border:2px solid var(--lacquer);}
+  .row input[type=range]::-moz-range-track{height:4px;border-radius:4px;background:linear-gradient(90deg,var(--sakura-deep),var(--gold-deep));}
+  .stepper{display:flex; align-items:center; gap:8px; grid-column:1 / -1;}
+  .stepper button{width:24px;height:24px; border-radius:6px; border:1px solid rgba(217,180,91,.45);
+    background:var(--lacquer2); color:var(--gold); font-size:14px; cursor:pointer; line-height:1;}
+  .stepper button:hover{background:var(--lacquer3)}
+  .stepper span{flex:1; text-align:center; font-size:12px; color:var(--paper); font-variant-numeric:tabular-nums;}
+  .remover{grid-column:1 / -1; display:grid; grid-template-columns:1fr 1fr; gap:6px;}
+  .remover .btn{padding:6px 4px; font-size:10px; letter-spacing:.5px;}
+  .remover .btn.rm{border-color:rgba(201,111,111,.55); color:#e8b6b6;}
+  .remover .btn.rm:hover{background:rgba(201,111,111,.18);}
+  .remover .btn.ad{border-color:rgba(127,176,105,.55); color:#bcd9ad;}
+  .remover .btn.ad:hover{background:rgba(127,176,105,.18);}
+  .switchrow{display:flex; justify-content:space-between; align-items:center; margin:7px 0;}
+  .switchrow label{font-size:11px;}
+  .switch{appearance:none; -webkit-appearance:none; width:36px; height:20px; border-radius:20px; cursor:pointer;
+    background:var(--lacquer3); border:1px solid rgba(217,180,91,.4); position:relative; transition:background .2s;}
+  .switch::after{content:''; position:absolute; top:2px; left:2px; width:14px; height:14px; border-radius:50%;
+    background:var(--paper-dim); transition:transform .2s, background .2s;}
+  .switch:checked{background:linear-gradient(90deg,var(--sakura-deep),var(--gold-deep));}
+  .switch:checked::after{transform:translateX(16px); background:#fff;}
+  select{width:100%; background:var(--lacquer2); color:var(--paper); border:1px solid rgba(217,180,91,.45);
+    border-radius:8px; padding:6px 8px; font-size:12px; cursor:pointer;}
+  #panel footer{padding:10px 16px; border-top:1px solid rgba(217,180,91,.25); display:flex; gap:8px; flex-wrap:wrap;}
+  #panel footer .btn{flex:1; padding:7px 6px; font-size:11px;}
+  #saveState{width:100%; text-align:center; font-size:10px; color:var(--paper-dim); letter-spacing:1px; margin-top:2px;}
+  #bgFile{display:none}
+
+  #start-overlay{position:fixed; inset:0; z-index:50; display:flex; flex-direction:column;
+    justify-content:center; align-items:center; gap:14px; cursor:pointer; text-align:center;
+    background:
+      radial-gradient(circle at 25% 20%, rgba(217,139,163,.22), transparent 45%),
+      radial-gradient(circle at 75% 75%, rgba(143,195,212,.18), transparent 50%),
+      radial-gradient(circle at 60% 30%, rgba(217,180,91,.14), transparent 40%),
+      rgba(13,9,6,.9);
+    animation:fadeIn .8s ease both;}
+  @keyframes fadeIn{from{opacity:0} to{opacity:1}}
+  #start-overlay h1{margin:0; font-size:clamp(26px,5vw,44px); letter-spacing:8px; color:var(--paper);
+    text-shadow:0 0 24px rgba(217,180,91,.5); animation:rise .9s .1s cubic-bezier(.2,.8,.2,1) both;}
+  #start-overlay .jp{font-size:15px; letter-spacing:10px; color:var(--sakura); animation:rise .9s .25s cubic-bezier(.2,.8,.2,1) both;}
+  #start-overlay p{margin:0; font-size:12px; color:var(--paper-dim); letter-spacing:2px; animation:rise .9s .4s both;}
+  @keyframes rise{from{opacity:0; transform:translateY(18px)} to{opacity:1; transform:none}}
+  #start-overlay .btn{animation:rise .9s .55s both; padding:10px 22px; font-size:13px;}
+
+  #toast{position:fixed; bottom:22px; left:50%; transform:translateX(-50%) translateY(20px); z-index:60;
+    background:linear-gradient(145deg,var(--lacquer2),var(--lacquer)); border:1px solid var(--gold);
+    color:var(--paper); padding:9px 20px; border-radius:24px; font-size:12px; letter-spacing:1px;
+    opacity:0; pointer-events:none; transition:opacity .3s, transform .3s; box-shadow:0 8px 24px rgba(0,0,0,.5);}
+  #toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+  #hint{position:fixed; bottom:16px; left:16px; z-index:10; font-size:10px; letter-spacing:1px;
+    color:rgba(246,239,226,.75); background:rgba(24,16,8,.6); padding:6px 12px; border-radius:16px;
+    border:1px solid rgba(217,180,91,.25); pointer-events:none;}
+
+  @media (max-width:860px){
+    #panel{top:auto; left:10px; right:10px; bottom:10px; width:auto; max-height:44vh;}
+    #title small{display:none}
+    #hint{display:none}
+  }
+</style>
+</head>
+<body>
+<div id="topbar">
+  <div id="seal">桜</div>
+  <div id="title">SAKURA GATE<small>桜の門 · pearl poem curtain</small></div>
+  <div class="spacer"></div>
+  <button class="btn" id="muteBtn" aria-pressed="false">🔔 Sound on</button>
+  <button class="btn btn-gold" id="saveBtn">Save</button>
+</div>
+
+<aside id="panel" aria-label="Curtain controls">
+  <header><h2>ATELIER · 調整</h2><p>left & right slant · column remover · saved gate reopens as-is</p></header>
+  <div id="panelBody">
+    <div class="sec">Placement · 配置</div>
+    <div class="row"><label for="xIn">Left ↔ Right</label><output id="xOut"></output>
+      <input type="range" id="xIn" min="0" max="90" step="0.5"></div>
+    <div class="row"><label for="yIn">Height</label><output id="yOut"></output>
+      <input type="range" id="yIn" min="0" max="400" step="2"></div>
+    <div class="row"><label for="slantLIn">Left slant</label><output id="slantLOut"></output>
+      <div class="stepper"><button id="slantLMinus" aria-label="raise left side">−</button><span id="slantLVal"></span><button id="slantLPlus" aria-label="lower left side">+</button></div>
+      <input type="range" id="slantLIn" min="-240" max="240" step="2"></div>
+    <div class="row"><label for="slantRIn">Right slant</label><output id="slantROut"></output>
+      <div class="stepper"><button id="slantRMinus" aria-label="raise right side">−</button><span id="slantRVal"></span><button id="slantRPlus" aria-label="lower right side">+</button></div>
+      <input type="range" id="slantRIn" min="-240" max="240" step="2"></div>
+
+    <div class="row"><label>Column remover</label><output id="rmCount"></output>
+      <div class="remover">
+        <button class="btn rm" id="rmLeft" title="Remove the leftmost column">− Left</button>
+        <button class="btn rm" id="rmRight" title="Remove the rightmost column">− Right</button>
+        <button class="btn ad" id="addLeft" title="Add a column on the left">＋ Left</button>
+        <button class="btn ad" id="addRight" title="Add a column on the right">＋ Right</button>
+      </div></div>
+
+    <div class="row"><label>Columns (total)</label><output id="colsOut"></output>
+      <div class="stepper"><button id="colsMinus" aria-label="fewer columns">−</button><span id="colsVal"></span><button id="colsPlus" aria-label="more columns">+</button></div></div>
+    <div class="row"><label>Rows (length)</label><output id="rowsOut"></output>
+      <div class="stepper"><button id="rowsMinus" aria-label="fewer rows">−</button><span id="rowsVal"></span><button id="rowsPlus" aria-label="more rows">+</button></div></div>
+
+    <div class="sec">Motion · 動き</div>
+    <div class="row"><label for="windIn">Breeze</label><output id="windOut"></output>
+      <input type="range" id="windIn" min="0" max="100"></div>
+    <div class="row"><label for="glideIn">Glide smoothness</label><output id="glideOut"></output>
+      <input type="range" id="glideIn" min="80" max="99"></div>
+    <div class="row"><label for="beadIn">Pearl size</label><output id="beadOut"></output>
+      <input type="range" id="beadIn" min="3" max="9" step="0.5"></div>
+
+    <div class="sec">Atmosphere · 空気</div>
+    <div class="row"><label for="petalIn">Sakura petals</label><output id="petalOut"></output>
+      <input type="range" id="petalIn" min="0" max="250"></div>
+    <div class="row"><label for="starIn">Gold & silver stars</label><output id="starOut"></output>
+      <input type="range" id="starIn" min="0" max="120"></div>
+    <div class="row"><label for="glowIn">Star glow</label><output id="glowOut"></output>
+      <input type="range" id="glowIn" min="0" max="20"></div>
+    <div class="row"><label for="shadowIn">Ground shadow</label><output id="shadowOut"></output>
+      <input type="range" id="shadowIn" min="0" max="100"></div>
+    <div class="switchrow"><label for="petalsOn">Petals</label><input type="checkbox" class="switch" id="petalsOn"></div>
+    <div class="switchrow"><label for="starsOn">Stars</label><input type="checkbox" class="switch" id="starsOn"></div>
+    <div class="switchrow"><label for="birdsOn">Birds</label><input type="checkbox" class="switch" id="birdsOn"></div>
+    <div class="row"><label for="finishIn">Pearl finish</label><output></output>
+      <select id="finishIn" style="grid-column:1/-1">
+        <option value="pearl">Moon pearl</option><option value="gold">Temple gold</option>
+        <option value="jade">Shrine jade</option><option value="sakura">Sakura blush</option>
+      </select></div>
+    <div class="row"><label>Background</label><output></output>
+      <button class="btn" id="bgBtn" style="grid-column:1/-1">Change background image…</button>
+      <input type="file" id="bgFile" accept="image/*"></div>
+
+    <div class="sec">Sound · 音</div>
+    <div class="row"><label for="volIn">Furin volume</label><output id="volOut"></output>
+      <input type="range" id="volIn" min="0" max="100"></div>
+
+    <div class="sec">Session · 保存</div>
+    <div class="switchrow"><label for="autoOn">Auto-save every change</label><input type="checkbox" class="switch" id="autoOn"></div>
+  </div>
+  <footer>
+    <button class="btn" id="resetBtn">Reset</button>
+    <button class="btn" id="randBtn">Randomize</button>
+    <button class="btn btn-gold" id="exportBtn">Export</button>
+    <div id="saveState">saved</div>
+  </footer>
+</aside>
+
+<div id="hint">Arrows nudge · Shift+↑↓ left slant · Ctrl+↑↓ right slant · [ ] remove L/R · Save keeps it</div>
+<div id="toast" role="status"></div>
+
+<div id="start-overlay">
+  <div class="jp">桜 の 門</div>
+  <h1>ENTER THE GATE</h1>
+  <p>a pearl poem hangs in the castle doorway — brush it and the furin sings</p>
+  <button class="btn btn-gold" id="enterSound">Enter with sound</button>
+  <button class="btn" id="enterQuiet">Enter quietly</button>
+</div>
+
+<canvas id="canvas"></canvas>
+
+<script id="app">
+(function(){
+'use strict';
+const TAU = Math.PI*2;
+const KEY = 'sakura-gate-v3';
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const DEFAULTS = { v:3, x:5.5, y:88, slantL:0, slantR:66, cols:23, rows:27, gap:14, spacing:16,
+  bead:5, wind:35, glide:95, petals:100, stars:50, glow:6, shadow:45,
+  volume:60, muted:false, finish:'pearl',
+  petalsOn:true, starsOn:true, birdsOn:true, autoSave:true, image:null, savedAt:0 };
+
+function migrate(o, trim){
+  if(!o) return o;
+  if(typeof o.tilt==='number' && typeof o.slantL!=='number'){
+    o.slantL=0; o.slantR=Math.round(o.tilt*((o.cols||24)-1)); delete o.tilt;
+  }
+  if(typeof o.slantDeg==='number' && typeof o.slantL!=='number'){
+    const tp=Math.tan(o.slantDeg*Math.PI/180)*(o.gap||14);
+    o.slantL=0; o.slantR=Math.round(tp*((o.cols||24)-1)); delete o.slantDeg;
+  }
+  if(trim && typeof o.cols==='number') o.cols=Math.max(6,o.cols-1);
+  o.v=3;
+  return o;
+}
+let S = Object.assign({}, DEFAULTS);
+if (window.BAKED_SETTINGS) Object.assign(S, migrate(window.BAKED_SETTINGS, false));
+let localRec=null, fromOld=false;
+try{ const raw=localStorage.getItem(KEY); if(raw) localRec=JSON.parse(raw); }catch(e){}
+if(!localRec){ try{
+  const r=localStorage.getItem('sakura-gate-v2')||localStorage.getItem('sakura-gate-v1');
+  if(r){ localRec=JSON.parse(r); fromOld=true; }
+}catch(e){} }
+if(localRec) Object.assign(S, migrate(localRec, fromOld));
+
+function writeLocal(obj){ try{ localStorage.setItem(KEY, JSON.stringify(obj)); return true; }catch(e){ return false; } }
+function idbOpen(){
+  return new Promise((res,rej)=>{
+    if(!('indexedDB' in window)) return rej(new Error('no idb'));
+    const req=indexedDB.open('sakura-gate',1);
+    req.onupgradeneeded=()=>{ if(!req.result.objectStoreNames.contains('settings')) req.result.createObjectStore('settings'); };
+    req.onsuccess=()=>res(req.result);
+    req.onerror=()=>rej(req.error);
+  });
+}
+function idbGet(){ return idbOpen().then(db=>new Promise((res,rej)=>{
+  const r=db.transaction('settings','readonly').objectStore('settings').get('current');
+  r.onsuccess=()=>res(r.result||null); r.onerror=()=>rej(r.error); })); }
+function idbSet(v){ return idbOpen().then(db=>new Promise((res,rej)=>{
+  const tx=db.transaction('settings','readwrite'); tx.objectStore('settings').put(v,'current');
+  tx.oncomplete=()=>res(true); tx.onerror=()=>rej(tx.error); })); }
+
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+let dpr=1, W=0, H=0;
+function sizeCanvas(){
+  dpr = Math.min(2, window.devicePixelRatio||1);
+  W = window.innerWidth; H = window.innerHeight;
+  canvas.width = W*dpr; canvas.height = H*dpr;
+  canvas.style.width = W+'px'; canvas.style.height = H+'px';
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+}
+function applyBackground(){
+  const src = S.image || 'castle.jpg';
+  document.body.style.backgroundImage =
+    'url("'+src+'"), linear-gradient(180deg,#bcd7e4 0%,#e8d9c8 55%,#9fc3cf 100%)';
+}
+function topY(i){
+  const t = S.cols>1 ? i/(S.cols-1) : 0;
+  return S.y + S.slantL + (S.slantR-S.slantL)*t;
+}
+
+let audioCtx=null, master=null, lastSound=0;
+function initAudio(){
+  if(!audioCtx){
+    const AC = window.AudioContext||window.webkitAudioContext;
+    if(!AC) return;
+    audioCtx = new AC();
+    master = audioCtx.createGain();
+    master.gain.value = S.muted?0:S.volume/100;
+    master.connect(audioCtx.destination);
+  }
+  if(audioCtx.state==='suspended') audioCtx.resume();
+}
+function playFurin(){
+  if(!audioCtx || S.muted) return;
+  const now = audioCtx.currentTime;
+  if(now-lastSound < 0.05) return;
+  lastSound = now;
+  const osc = audioCtx.createOscillator(), g = audioCtx.createGain();
+  osc.type='sine';
+  osc.frequency.setValueAtTime(1200+Math.random()*800, now);
+  osc.connect(g); g.connect(master);
+  g.gain.setValueAtTime(0,now);
+  g.gain.linearRampToValueAtTime(0.14, now+0.01);
+  g.gain.exponentialRampToValueAtTime(0.0001, now+2.5);
+  osc.start(now); osc.stop(now+2.5);
+}
+function setMuted(m){
+  S.muted=m;
+  if(master) master.gain.setTargetAtTime(m?0:S.volume/100, audioCtx.currentTime, 0.05);
+  const b=document.getElementById('muteBtn');
+  b.setAttribute('aria-pressed', String(m));
+  b.textContent = m?'🔇 Muted':'🔔 Sound on';
+}
+
+const poem = "君がため惜しからざらむ命なら長くもあらなんものと思へば春の夜の夢の浮橋とだえして峰に別るる横雲の空あしびきの山鳥の尾のしだり尾のながながし夜をひとりかも寝む恋すてふ私の名はまだ立ぬべき人を思はぬものと思ひつつ";
+const chars = Array.from(new Set(poem.split('')));
+const FINISH = {
+  pearl:{hi:'#ffffff', mid:'#f2f0ea', lo:'#b9b7c2', ink:'#20242e', thread:'rgba(185,183,194,0.35)'},
+  gold:{hi:'#fff6d8', mid:'#e9c76a', lo:'#9a742c', ink:'#3a2c10', thread:'rgba(154,116,44,0.4)'},
+  jade:{hi:'#eafff5', mid:'#9fd8c0', lo:'#4d8a74', ink:'#123328', thread:'rgba(77,138,116,0.4)'},
+  sakura:{hi:'#fff0f4', mid:'#f3b7c8', lo:'#c76e8c', ink:'#4a1f2e', thread:'rgba(199,110,140,0.4)'}
+};
+let strings=[], sprites={}, spriteD=0;
+class Bead{
+  constructor(x,y,pinned){ this.x=x; this.y=y; this.oldx=x; this.oldy=y; this.pinned=pinned; }
+  update(wind,damp){
+    if(this.pinned) return;
+    const vx=(this.x-this.oldx)*damp, vy=(this.y-this.oldy)*damp;
+    this.oldx=this.x; this.oldy=this.y;
+    this.x+=vx+wind; this.y+=vy+0.15;
+  }
+}
+function buildCurtain(){
+  strings=[];
+  const sx=S.x/100*W;
+  for(let s=0;s<S.cols;s++){
+    const bx=sx+s*S.gap, by=topY(s), arr=[];
+    for(let b=0;b<S.rows;b++) arr.push(new Bead(bx, by+b*S.spacing, b===0));
+    strings.push({beads:arr});
+  }
+}
+function movePins(){
+  const sx=S.x/100*W;
+  strings.forEach((st,i)=>{ const t=st.beads[0];
+    t.x=sx+i*S.gap; t.y=topY(i); t.oldx=t.x; t.oldy=t.y; });
+}
+function makeSprites(){
+  const f=FINISH[S.finish]||FINISH.pearl, r=S.bead;
+  spriteD=Math.ceil(r*2+8); sprites={};
+  const font=Math.max(6, Math.round(r*1.5));
+  chars.forEach(ch=>{
+    const c=document.createElement('canvas'); c.width=c.height=spriteD;
+    const g2=c.getContext('2d'), cx=spriteD/2;
+    const grad=g2.createRadialGradient(cx-r*0.35, cx-r*0.4, r*0.15, cx, cx, r);
+    grad.addColorStop(0,f.hi); grad.addColorStop(0.55,f.mid); grad.addColorStop(1,f.lo);
+    g2.fillStyle=grad; g2.beginPath(); g2.arc(cx,cx,r,0,TAU); g2.fill();
+    g2.strokeStyle=f.lo; g2.globalAlpha=0.55; g2.lineWidth=1; g2.stroke(); g2.globalAlpha=1;
+    g2.fillStyle='rgba(255,255,255,0.85)';
+    g2.beginPath(); g2.arc(cx-r*0.4, cx-r*0.45, r*0.22, 0, TAU); g2.fill();
+    g2.fillStyle=f.ink; g2.font=font+"px 'Yu Mincho','MS Mincho',serif";
+    g2.textAlign='center'; g2.textBaseline='middle';
+    g2.fillText(ch, cx, cx+0.5);
+    sprites[ch]=c;
+  });
+}
+
+let petals=[], stars=[], birds=[];
+const starCols=['rgba(255,215,0,','rgba(192,192,192,','rgba(255,248,220,'];
+function syncAtmosphere(){
+  while(petals.length<S.petals){ const dark=Math.random()>0.4;
+    petals.push({x:Math.random()*W, y:Math.random()*H, size:Math.random()*5+4,
+      sy:Math.random()*1+0.5, sx:(Math.random()-0.5)*0.8, rot:Math.random()*TAU,
+      rs:(Math.random()-0.5)*0.04, op:Math.random()*0.4+0.4,
+      col:'rgba(255,'+(dark?183:220)+','+(dark?197:230)+','}); }
+  petals.length=S.petals;
+  while(stars.length<S.stars){ stars.push({x:Math.random()*W, y:Math.random()*H,
+      size:Math.random()*2+1, sy:(Math.random()-0.5)*0.2, sx:(Math.random()-0.5)*0.2,
+      col:starCols[Math.floor(Math.random()*3)], ts:Math.random()*0.05+0.02, tp:Math.random()*TAU}); }
+  stars.length=S.stars;
+  if(!birds.length) for(let i=0;i<6;i++) birds.push({x:Math.random()*W, y:Math.random()*H*0.4,
+      sp:Math.random()*1.5+0.5, size:Math.random()*3+2, wp:Math.random()*TAU});
+}
+
+const mouse={x:-1000,y:-1000};
+window.addEventListener('mousemove', e=>{
+  const t=e.target;
+  if(t && t.closest && t.closest('#panel,#topbar,#start-overlay')){ mouse.x=-1000; mouse.y=-1000; }
+  else { mouse.x=e.clientX; mouse.y=e.clientY; }
+});
+function updatePhysics(){
+  const t=Date.now()*0.001;
+  const wind=(Math.sin(t)*0.6+Math.sin(t*0.5)*0.4)*(S.wind/100)*0.14;
+  const damp=S.glide/100;
+  for(const st of strings) for(const b of st.beads) b.update(wind,damp);
+  for(const st of strings) for(const b of st.beads){
+    if(b.pinned) continue;
+    const dx=b.x-mouse.x, dy=b.y-mouse.y, d=Math.sqrt(dx*dx+dy*dy);
+    if(d<40 && d>0.001){ const f=(40-d)/40;
+      b.x+=dx/d*f*2; b.y+=dy/d*f*2;
+      if(Math.random()>0.86) playFurin(); }
+  }
+  for(let it=0;it<4;it++) for(const st of strings)
+    for(let i=1;i<st.beads.length;i++){
+      const p1=st.beads[i-1], p2=st.beads[i];
+      const dx=p2.x-p1.x, dy=p2.y-p1.y, d=Math.sqrt(dx*dx+dy*dy)||0.001;
+      const diff=(S.spacing-d)/d*0.5, ox=dx*diff, oy=dy*diff;
+      if(!p1.pinned){ p1.x-=ox; p1.y-=oy; }
+      p2.x+=ox; p2.y+=oy;
+    }
+}
+
+function draw(){
+  ctx.clearRect(0,0,W,H);
+  const t=Date.now()*0.001;
+  if(S.starsOn) for(const s of stars){
+    s.x+=s.sx+Math.sin(t)*0.1; s.y+=s.sy; s.tp+=s.ts;
+    if(s.y>H)s.y=0; if(s.y<0)s.y=H; if(s.x>W)s.x=0; if(s.x<0)s.x=W;
+    const op=Math.max(0,0.3+Math.sin(s.tp)*0.3);
+    ctx.shadowBlur=S.glow; ctx.shadowColor=s.col+'1)';
+    ctx.fillStyle=s.col+op+')';
+    ctx.beginPath(); ctx.arc(s.x,s.y,s.size,0,TAU); ctx.fill();
+  }
+  ctx.shadowBlur=0;
+  if(S.birdsOn){ ctx.strokeStyle='rgba(30,30,40,0.6)'; ctx.lineWidth=1.5;
+    for(const b of birds){ b.x+=b.sp; b.wp+=0.15;
+      const wy=Math.sin(b.wp)*b.size; if(b.x>W+20)b.x=-20;
+      ctx.beginPath(); ctx.moveTo(b.x-b.size,b.y+wy);
+      ctx.quadraticCurveTo(b.x,b.y-wy,b.x+b.size,b.y+wy); ctx.stroke(); } }
+  if(S.petalsOn){ const pw=Math.sin(t)*(S.wind/100)*0.6;
+    for(const p of petals){ p.y+=p.sy; p.x+=p.sx+pw+Math.sin(p.y*0.01)*0.5; p.rot+=p.rs;
+      if(p.y>H+20){p.y=-20;p.x=Math.random()*W;} if(p.x>W+20)p.x=-20; if(p.x<-20)p.x=W+20;
+      ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rot);
+      ctx.fillStyle=p.col+p.op+')';
+      ctx.beginPath(); ctx.moveTo(0,p.size);
+      ctx.bezierCurveTo(p.size/2,p.size/2,p.size/2,0,0,-p.size/3);
+      ctx.lineTo(0,0);
+      ctx.bezierCurveTo(-p.size/2,0,-p.size/2,p.size/2,0,p.size);
+      ctx.fill(); ctx.restore(); } }
+
+  if(S.shadow>0 && strings.length){
+    const sx=S.x/100*W; let swaySum=0;
+    strings.forEach((st,i)=>{ swaySum += st.beads[st.beads.length-1].x - (sx+i*S.gap); });
+    const sway=swaySum/strings.length;
+    const motion=Math.min(1, Math.abs(sway)/60);
+    const cx=sx+(S.cols-1)*S.gap/2 + sway*0.8;
+    const gy=S.y+(S.slantL+S.slantR)/2+(S.rows-1)*S.spacing+34;
+    const rw=S.cols*S.gap*0.62 + Math.abs(sway)*0.9;
+    const alpha=(S.shadow/100)*0.5*(1-0.65*motion);
+    const ang=Math.atan2(S.slantR-S.slantL, Math.max(1,(S.cols-1)*S.gap));
+    ctx.save(); ctx.translate(cx,gy); ctx.rotate(ang); ctx.transform(1,0,-sway*0.004,1,0,0); ctx.scale(1,0.16);
+    const g=ctx.createRadialGradient(0,0,0,0,0,rw);
+    g.addColorStop(0,'rgba(20,14,10,'+alpha+')');
+    g.addColorStop(0.7,'rgba(20,14,10,'+(alpha*0.45)+')');
+    g.addColorStop(1,'rgba(20,14,10,0)');
+    ctx.fillStyle=g; ctx.beginPath(); ctx.arc(0,0,rw,0,TAU); ctx.fill(); ctx.restore();
+  }
+
+  const f=FINISH[S.finish]||FINISH.pearl;
+  let ci=0;
+  for(const st of strings){
+    ctx.strokeStyle=f.thread; ctx.lineWidth=0.5;
+    ctx.beginPath(); ctx.moveTo(st.beads[0].x, st.beads[0].y);
+    for(let i=1;i<st.beads.length;i++) ctx.lineTo(st.beads[i].x, st.beads[i].y);
+    ctx.stroke();
+    for(const b of st.beads){
+      const ch=poem[ci%poem.length]; ci++;
+      const sp=sprites[ch]; if(sp) ctx.drawImage(sp, b.x-spriteD/2, b.y-spriteD/2);
+    }
+  }
+}
+function loop(){ updatePhysics(); draw(); requestAnimationFrame(loop); }
+
+const $=id=>document.getElementById(id);
+let dirtyFlag=false, toastTimer=null, autoTimer=null;
+function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove('show'),2600); }
+function markSaved(label){ dirtyFlag=false; $('saveBtn').classList.remove('dirty');
+  $('saveState').textContent=label||'saved · reopens as-is'; }
+function doSave(manual){
+  S.v=3; S.savedAt=Date.now();
+  const okLocal=writeLocal(S);
+  idbSet(S).catch(()=>{});
+  markSaved(manual?'saved · reopens as-is':'auto-saved · reopens as-is');
+  if(manual){
+    if(okLocal) toast('Saved ✓ — every reopen restores this exact gate.');
+    else if('indexedDB' in window) toast('Saved ✓ (browser database) — reopens as-is.');
+    else toast('Storage blocked here — use Export to bake settings into a file.');
+  }
+}
+function markDirty(){
+  dirtyFlag=true; $('saveBtn').classList.add('dirty'); $('saveState').textContent='unsaved changes';
+  if(S.autoSave){ clearTimeout(autoTimer); autoTimer=setTimeout(()=>doSave(false),600); }
+}
+function syncUI(){
+  $('xIn').value=S.x; $('xOut').textContent=S.x.toFixed(1)+'%';
+  $('yIn').value=S.y; $('yOut').textContent=Math.round(S.y)+'px';
+  $('slantLIn').value=S.slantL; $('slantLOut').textContent=Math.round(S.slantL)+'px'; $('slantLVal').textContent=Math.round(S.slantL)+'px';
+  $('slantRIn').value=S.slantR; $('slantROut').textContent=Math.round(S.slantR)+'px'; $('slantRVal').textContent=Math.round(S.slantR)+'px';
+  $('rmCount').textContent=S.cols+' cols';
+  $('colsVal').textContent=S.cols; $('colsOut').textContent=S.cols;
+  $('rowsVal').textContent=S.rows; $('rowsOut').textContent=S.rows;
+  $('windIn').value=S.wind; $('windOut').textContent=S.wind;
+  $('glideIn').value=S.glide; $('glideOut').textContent=S.glide;
+  $('beadIn').value=S.bead; $('beadOut').textContent=S.bead;
+  $('petalIn').value=S.petals; $('petalOut').textContent=S.petals;
+  $('starIn').value=S.stars; $('starOut').textContent=S.stars;
+  $('glowIn').value=S.glow; $('glowOut').textContent=S.glow;
+  $('shadowIn').value=S.shadow; $('shadowOut').textContent=S.shadow;
+  $('volIn').value=S.volume; $('volOut').textContent=S.volume;
+  $('finishIn').value=S.finish;
+  $('petalsOn').checked=S.petalsOn; $('starsOn').checked=S.starsOn; $('birdsOn').checked=S.birdsOn;
+  $('autoOn').checked=S.autoSave;
+  setMuted(S.muted);
+}
+function rebuildAll(){ applyBackground(); buildCurtain(); makeSprites(); syncAtmosphere(); }
+function bindRange(id, key, after){
+  $(id).addEventListener('input', e=>{ S[key]=parseFloat(e.target.value); if(after)after(); syncUI(); markDirty(); });
+}
+bindRange('xIn','x',movePins); bindRange('yIn','y',movePins);
+bindRange('slantLIn','slantL',movePins); bindRange('slantRIn','slantR',movePins);
+bindRange('windIn','wind'); bindRange('glideIn','glide');
+bindRange('beadIn','bead',makeSprites);
+bindRange('petalIn','petals',syncAtmosphere); bindRange('starIn','stars',syncAtmosphere);
+bindRange('glowIn','glow'); bindRange('shadowIn','shadow');
+bindRange('volIn','volume',()=>{ if(master&&!S.muted) master.gain.setTargetAtTime(S.volume/100,audioCtx.currentTime,0.05); });
+$('finishIn').addEventListener('change',e=>{ S.finish=e.target.value; makeSprites(); markDirty(); });
+[['petalsOn','petalsOn'],['starsOn','starsOn'],['birdsOn','birdsOn'],['autoOn','autoSave']].forEach(([id,k])=>{
+  $(id).addEventListener('change',e=>{ S[k]=e.target.checked; markDirty(); }); });
+function step(key,d,min,max){ S[key]=clamp(S[key]+d,min,max); buildCurtain(); syncUI(); markDirty(); }
+$('colsMinus').onclick=()=>step('cols',-1,6,40); $('colsPlus').onclick=()=>step('cols',1,6,40);
+$('rowsMinus').onclick=()=>step('rows',-1,6,44); $('rowsPlus').onclick=()=>step('rows',1,6,44);
+function stepSlant(key,d){ S[key]=clamp(S[key]+d,-240,240); movePins(); syncUI(); markDirty(); }
+$('slantLMinus').onclick=()=>stepSlant('slantL',-2); $('slantLPlus').onclick=()=>stepSlant('slantL',2);
+$('slantRMinus').onclick=()=>stepSlant('slantR',-2); $('slantRPlus').onclick=()=>stepSlant('slantR',2);
+
+/* ---------- column remover: trims one edge while the top line stays anchored ---------- */
+function trimCol(side, delta){
+  const next=S.cols+delta;
+  if(next<6){ toast('The gate needs at least 6 columns.'); return; }
+  if(next>40){ toast('40 columns is the loom’s limit.'); return; }
+  const m=(S.cols>1 ? (S.slantR-S.slantL)/((S.cols-1)*S.gap) : 0)*S.gap;
+  if(side==='left'){
+    S.x=clamp(S.x + (delta===-1 ? 1 : -1)*(S.gap/W*100), 0, 90);
+    S.slantL=clamp(S.slantL + (delta===-1 ? m : -m), -240, 240);
+  } else {
+    S.slantR=clamp(S.slantR + (delta===-1 ? -m : m), -240, 240);
+  }
+  S.cols=next;
+  buildCurtain(); syncUI(); markDirty();
+  toast(delta===-1
+    ? (side==='left'?'Left column removed.':'Right column removed.')
+    : (side==='left'?'Column added on the left.':'Column added on the right.'));
+}
+$('rmLeft').onclick=()=>trimCol('left',-1);
+$('rmRight').onclick=()=>trimCol('right',-1);
+$('addLeft').onclick=()=>trimCol('left',1);
+$('addRight').onclick=()=>trimCol('right',1);
+
+window.addEventListener('keydown', e=>{
+  const tag=(e.target.tagName||'').toLowerCase();
+  if(tag==='input'||tag==='select'||tag==='textarea') return;
+  if(e.key==='['||e.key===']'||e.key==='{'||e.key==='}'){
+    e.preventDefault();
+    if(e.key==='[') trimCol('left',-1);
+    if(e.key===']') trimCol('right',-1);
+    if(e.key==='{') trimCol('left',1);
+    if(e.key==='}') trimCol('right',1);
+    return;
+  }
+  let moved=false;
+  if(e.shiftKey && e.key==='ArrowUp'){ S.slantL=clamp(S.slantL-2,-240,240); moved=true; }
+  else if(e.shiftKey && e.key==='ArrowDown'){ S.slantL=clamp(S.slantL+2,-240,240); moved=true; }
+  else if(e.ctrlKey && e.key==='ArrowUp'){ S.slantR=clamp(S.slantR-2,-240,240); moved=true; }
+  else if(e.ctrlKey && e.key==='ArrowDown'){ S.slantR=clamp(S.slantR+2,-240,240); moved=true; }
+  else if(e.key==='ArrowLeft'){ S.x=clamp(S.x-10/W*100,0,90); moved=true; }
+  else if(e.key==='ArrowRight'){ S.x=clamp(S.x+10/W*100,0,90); moved=true; }
+  else if(e.key==='ArrowUp'){ S.y=Math.max(0,S.y-10); moved=true; }
+  else if(e.key==='ArrowDown'){ S.y=Math.min(H*0.6,S.y+10); moved=true; }
+  if(moved){ e.preventDefault(); movePins(); syncUI(); markDirty(); }
+});
+
+$('muteBtn').onclick=()=>{ setMuted(!S.muted); markDirty(); };
+$('saveBtn').onclick=()=>doSave(true);
+$('resetBtn').onclick=()=>{ const img=S.image; S=Object.assign({},DEFAULTS,{image:img});
+  rebuildAll(); syncUI(); markDirty(); toast('Reset to the gate’s original calm.'); };
+$('randBtn').onclick=()=>{ const r=(a,b)=>a+Math.random()*(b-a);
+  S.x=r(3,45); S.y=r(60,160); S.slantL=Math.round(r(-40,20)); S.slantR=Math.round(r(20,110));
+  S.wind=Math.round(r(15,70)); S.petals=Math.round(r(60,200)); S.stars=Math.round(r(25,90));
+  S.finish=['pearl','gold','jade','sakura'][Math.floor(Math.random()*4)];
+  rebuildAll(); syncUI(); markDirty(); toast('A new breeze, a new arrangement.'); };
+$('bgBtn').onclick=()=>$('bgFile').click();
+$('bgFile').addEventListener('change', e=>{
+  const file=e.target.files[0]; if(!file) return;
+  const rd=new FileReader();
+  rd.onload=()=>{ S.image=rd.result; applyBackground(); markDirty(); toast('Background changed.'); };
+  rd.readAsDataURL(file);
+});
+$('exportBtn').onclick=()=>{
+  const clone=document.documentElement.cloneNode(true);
+  clone.querySelectorAll('[style]').forEach(el=>el.removeAttribute('style'));
+  const old=clone.querySelector('#baked-settings'); if(old) old.remove();
+  const t=clone.querySelector('#toast'); if(t){ t.textContent=''; t.classList.remove('show'); }
+  const bake=document.createElement('script'); bake.id='baked-settings';
+  bake.textContent='window.BAKED_SETTINGS='+JSON.stringify(S)+';';
+  const app=clone.querySelector('#app'); app.parentNode.insertBefore(bake, app);
+  const blob=new Blob(['<!DOCTYPE html>\n'+clone.outerHTML],{type:'text/html'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download='sakura-gate-final.html'; a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+  toast('Exported — settings baked into the file.');
+};
+function enter(muted){ initAudio(); setMuted(muted);
+  document.getElementById('start-overlay').style.display='none';
+  if(S.autoSave) doSave(false); }
+$('enterSound').onclick=e=>{ e.stopPropagation(); enter(false); };
+$('enterQuiet').onclick=e=>{ e.stopPropagation(); enter(true); };
+$('start-overlay').onclick=()=>enter(false);
+
+window.addEventListener('resize', ()=>{ sizeCanvas(); movePins(); });
+
+applyBackground(); sizeCanvas(); buildCurtain(); makeSprites(); syncAtmosphere(); syncUI();
+markSaved(localRec?'saved · reopens as-is':'default scene');
+requestAnimationFrame(loop);
+idbGet().then(rec=>{
+  if(rec && (rec.savedAt||0) > (S.savedAt||0)){
+    Object.assign(S, migrate(rec, rec.v!==3)); rebuildAll(); syncUI();
+    markSaved('saved · reopens as-is'); toast('Restored your saved gate.');
+  }
+}).catch(()=>{});
+})();
+</script>
+</body>
+</html>
