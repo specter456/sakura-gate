@@ -3,6 +3,11 @@
 
 Welcome to my interactive web project! This is an AI-assisted simulation of a traditional Japanese *Noren* (curtain) made of pearls and poetry, hanging in the gate of a magical cherry blossom castle. 
 
+**Overview**
+    Sakura Gate – Interactive Shrine with Wind Chimes | Creative Direction, UX Testing, AI-Assisted Development
+• Directed an AI-built interactive web experience of a Japanese shrine gate with a physics-based pearl curtain, sakura petals, and soothing wind-chime audio.
+• Iteratively tested and refined motion, sound, and layout to achieve a calm, magical user experience.
+
 **🎬 Live Demo:** [Click here to enter the Sakura Gate!](https://specter456.github.io/sakura-gate/)
 
 ## 🎬 The Inspiration
