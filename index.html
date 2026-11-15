@@ -1,6 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
+<html lang="en"><head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Sakura Gate · 桜の門</title>
@@ -145,21 +144,21 @@
 </div>
 
 <aside id="panel" aria-label="Curtain controls">
-  <header><h2>ATELIER · 調整</h2><p>left & right slant · column remover · saved gate reopens as-is</p></header>
+  <header><h2>ATELIER · 調整</h2><p>left &amp; right slant · column remover · saved gate reopens as-is</p></header>
   <div id="panelBody">
     <div class="sec">Placement · 配置</div>
-    <div class="row"><label for="xIn">Left ↔ Right</label><output id="xOut"></output>
+    <div class="row"><label for="xIn">Left ↔ Right</label><output id="xOut">12.9%</output>
       <input type="range" id="xIn" min="0" max="90" step="0.5"></div>
-    <div class="row"><label for="yIn">Height</label><output id="yOut"></output>
+    <div class="row"><label for="yIn">Height</label><output id="yOut">122px</output>
       <input type="range" id="yIn" min="0" max="400" step="2"></div>
-    <div class="row"><label for="slantLIn">Left slant</label><output id="slantLOut"></output>
-      <div class="stepper"><button id="slantLMinus" aria-label="raise left side">−</button><span id="slantLVal"></span><button id="slantLPlus" aria-label="lower left side">+</button></div>
+    <div class="row"><label for="slantLIn">Left slant</label><output id="slantLOut">6px</output>
+      <div class="stepper"><button id="slantLMinus" aria-label="raise left side">−</button><span id="slantLVal">6px</span><button id="slantLPlus" aria-label="lower left side">+</button></div>
       <input type="range" id="slantLIn" min="-240" max="240" step="2"></div>
-    <div class="row"><label for="slantRIn">Right slant</label><output id="slantROut"></output>
-      <div class="stepper"><button id="slantRMinus" aria-label="raise right side">−</button><span id="slantRVal"></span><button id="slantRPlus" aria-label="lower right side">+</button></div>
+    <div class="row"><label for="slantRIn">Right slant</label><output id="slantROut">42px</output>
+      <div class="stepper"><button id="slantRMinus" aria-label="raise right side">−</button><span id="slantRVal">42px</span><button id="slantRPlus" aria-label="lower right side">+</button></div>
       <input type="range" id="slantRIn" min="-240" max="240" step="2"></div>
 
-    <div class="row"><label>Column remover</label><output id="rmCount"></output>
+    <div class="row"><label>Column remover</label><output id="rmCount">22 cols</output>
       <div class="remover">
         <button class="btn rm" id="rmLeft" title="Remove the leftmost column">− Left</button>
         <button class="btn rm" id="rmRight" title="Remove the rightmost column">− Right</button>
@@ -167,42 +166,42 @@
         <button class="btn ad" id="addRight" title="Add a column on the right">＋ Right</button>
       </div></div>
 
-    <div class="row"><label>Columns (total)</label><output id="colsOut"></output>
-      <div class="stepper"><button id="colsMinus" aria-label="fewer columns">−</button><span id="colsVal"></span><button id="colsPlus" aria-label="more columns">+</button></div></div>
-    <div class="row"><label>Rows (length)</label><output id="rowsOut"></output>
-      <div class="stepper"><button id="rowsMinus" aria-label="fewer rows">−</button><span id="rowsVal"></span><button id="rowsPlus" aria-label="more rows">+</button></div></div>
+    <div class="row"><label>Columns (total)</label><output id="colsOut">22</output>
+      <div class="stepper"><button id="colsMinus" aria-label="fewer columns">−</button><span id="colsVal">22</span><button id="colsPlus" aria-label="more columns">+</button></div></div>
+    <div class="row"><label>Rows (length)</label><output id="rowsOut">27</output>
+      <div class="stepper"><button id="rowsMinus" aria-label="fewer rows">−</button><span id="rowsVal">27</span><button id="rowsPlus" aria-label="more rows">+</button></div></div>
 
     <div class="sec">Motion · 動き</div>
-    <div class="row"><label for="windIn">Breeze</label><output id="windOut"></output>
+    <div class="row"><label for="windIn">Breeze</label><output id="windOut">65</output>
       <input type="range" id="windIn" min="0" max="100"></div>
-    <div class="row"><label for="glideIn">Glide smoothness</label><output id="glideOut"></output>
+    <div class="row"><label for="glideIn">Glide smoothness</label><output id="glideOut">94</output>
       <input type="range" id="glideIn" min="80" max="99"></div>
-    <div class="row"><label for="beadIn">Pearl size</label><output id="beadOut"></output>
+    <div class="row"><label for="beadIn">Pearl size</label><output id="beadOut">4</output>
       <input type="range" id="beadIn" min="3" max="9" step="0.5"></div>
 
     <div class="sec">Atmosphere · 空気</div>
-    <div class="row"><label for="petalIn">Sakura petals</label><output id="petalOut"></output>
+    <div class="row"><label for="petalIn">Sakura petals</label><output id="petalOut">250</output>
       <input type="range" id="petalIn" min="0" max="250"></div>
-    <div class="row"><label for="starIn">Gold & silver stars</label><output id="starOut"></output>
+    <div class="row"><label for="starIn">Gold &amp; silver stars</label><output id="starOut">120</output>
       <input type="range" id="starIn" min="0" max="120"></div>
-    <div class="row"><label for="glowIn">Star glow</label><output id="glowOut"></output>
+    <div class="row"><label for="glowIn">Star glow</label><output id="glowOut">20</output>
       <input type="range" id="glowIn" min="0" max="20"></div>
-    <div class="row"><label for="shadowIn">Ground shadow</label><output id="shadowOut"></output>
+    <div class="row"><label for="shadowIn">Ground shadow</label><output id="shadowOut">100</output>
       <input type="range" id="shadowIn" min="0" max="100"></div>
     <div class="switchrow"><label for="petalsOn">Petals</label><input type="checkbox" class="switch" id="petalsOn"></div>
     <div class="switchrow"><label for="starsOn">Stars</label><input type="checkbox" class="switch" id="starsOn"></div>
     <div class="switchrow"><label for="birdsOn">Birds</label><input type="checkbox" class="switch" id="birdsOn"></div>
     <div class="row"><label for="finishIn">Pearl finish</label><output></output>
-      <select id="finishIn" style="grid-column:1/-1">
+      <select id="finishIn">
         <option value="pearl">Moon pearl</option><option value="gold">Temple gold</option>
         <option value="jade">Shrine jade</option><option value="sakura">Sakura blush</option>
       </select></div>
     <div class="row"><label>Background</label><output></output>
-      <button class="btn" id="bgBtn" style="grid-column:1/-1">Change background image…</button>
+      <button class="btn" id="bgBtn">Change background image…</button>
       <input type="file" id="bgFile" accept="image/*"></div>
 
     <div class="sec">Sound · 音</div>
-    <div class="row"><label for="volIn">Furin volume</label><output id="volOut"></output>
+    <div class="row"><label for="volIn">Furin volume</label><output id="volOut">100</output>
       <input type="range" id="volIn" min="0" max="100"></div>
 
     <div class="sec">Session · 保存</div>
@@ -212,7 +211,7 @@
     <button class="btn" id="resetBtn">Reset</button>
     <button class="btn" id="randBtn">Randomize</button>
     <button class="btn btn-gold" id="exportBtn">Export</button>
-    <div id="saveState">saved</div>
+    <div id="saveState">auto-saved · reopens as-is</div>
   </footer>
 </aside>
 
@@ -227,9 +226,9 @@
   <button class="btn" id="enterQuiet">Enter quietly</button>
 </div>
 
-<canvas id="canvas"></canvas>
+<canvas id="canvas" width="1910" height="935"></canvas>
 
-<script id="app">
+<script id="baked-settings">window.BAKED_SETTINGS={"v":3,"x":12.916230366492147,"y":122,"slantL":6.3,"slantR":42,"cols":22,"rows":27,"gap":14,"spacing":16,"bead":4,"wind":65,"glide":94,"petals":250,"stars":120,"glow":20,"shadow":100,"volume":100,"muted":false,"finish":"sakura","petalsOn":true,"starsOn":true,"birdsOn":true,"autoSave":true,"image":null,"savedAt":1794748140643};</script><script id="app">
 (function(){
 'use strict';
 const TAU = Math.PI*2;
@@ -651,5 +650,5 @@ idbGet().then(rec=>{
 }).catch(()=>{});
 })();
 </script>
-</body>
-</html>
+
+</body></html>
